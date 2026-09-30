@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PocketSmart AI</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 130px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            resize: none;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 12px;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #222;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+        }
+
+        #response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            min-height: 70px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #777;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>💰 PocketSmart AI</h1>
+
+    <div class="subtitle">
+        Smart Budget & Recommendation Assistant
+    </div>
+
+    <div class="card">
+
+        <textarea
+            id="userInput"
+            placeholder="Example: I have ₹10,000. I want to buy clothes and a watch.">
+        </textarea>
+
+        <button id="askButton" onclick="askAI()">
+            Ask PocketSmart AI
+        </button>
+
+        <div id="response">
+            AI response will appear here...
+        </div>
+
+        <div class="status" id="status">
+            Ready
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /*
+     * ==========================================
+     * POCKETSMART AI
+     * GEMINI TEST CONNECTION
+     * ==========================================
+     */
+
+    // TEMPORARY TESTING ONLY
+    // DO NOT PUT A REAL API KEY IN PUBLIC GITHUB.
+
+    const GEMINI_API_KEY ="AQ.Ab8RN6L0J-X1Zdh_cW6N9Hw6AQAVbhYN5G_3LFlEp71gNA8JTw";
+
+
+    async function askAI() {
+
+        const input =
+            document.getElementById("userInput").value.trim();
+
+        const responseBox =
+            document.getElementById("response");
+
+        const status =
+            document.getElementById("status");
+
+        const button =
+            document.getElementById("askButton");
+
+
+        // Check input
+
+        if (input === "") {
+
+            responseBox.innerText =
+                "Please enter your budget or requirement.";
+
+            return;
+        }
+
+
+        // Check API key
+
+        if (
+            GEMINI_API_KEY === "" ||
+            GEMINI_API_KEY === "PASTE_YOUR_API_KEY_HERE"
+        ) {
+
+            responseBox.innerText =
+                "Gemini API key is missing.";
+
+            return;
+        }
+
+
+        // UI state
+
+        button.disabled = true;
+
+        status.innerText = "Connecting to Gemini AI...";
+
+        responseBox.innerText =
+            "PocketSmart AI is thinking...";
+
+
+        try {
+
+            const url =
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent";
+
+
+            const prompt = `
+You are PocketSmart AI,
+a smart budget and recommendation assistant.
+
+Your job is to understand the user's budget,
+requirements and preferences.
+
+Give practical recommendations.
+
+User request:
+
+${input}
+`;
+
+
+            const result = await fetch(url, {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json",
+
+                    "x-goog-api-key": GEMINI_API_KEY
+
+                },
+
+                body: JSON.stringify({
+
+                    contents: [
+
+                        {
+
+                            parts: [
+
+                                {
+                                    text: prompt
+                                }
+
+                            ]
+
+                        }
+
+                    ]
+
+                })
+
+            });
+
+
+            const data = await result.json();
+
+
+            if (!result.ok) {
+
+                console.error(data);
+
+                throw new Error(
+                    data.error?.message ||
+                    "Gemini API request failed."
+                );
+
+            }
+
+
+            const aiText =
+                data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+
+            if (!aiText) {
+
+                throw new Error(
+                    "Gemini returned no text."
+                );
+
+            }
+
+
+            responseBox.innerText = aiText;
+
+            status.innerText =
+                "Gemini AI response received ✓";
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            responseBox.innerText =
+                "Error: " + error.message;
+
+            status.innerText =
+                "Gemini connection failed";
+
+        }
+
+
+        button.disabled = false;
+
+    }
+
+</script>
+
+</body>
+</html>
